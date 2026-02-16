@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resin Counter Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.css">
+</head>
+<body>
+  <div class="floating-controls">
+    <button id="settingsToggle" class="theme-btn" aria-label="Settings">
+      <span>⚙️</span>
+    </button>
+    <button id="themeToggle" class="theme-btn" aria-label="Toggle Theme">
+      <span id="themeIcon">🌙</span>
+    </button>
+  </div>
+  
+  <div class="window-container">
+	<div class="card main-card">
+	  <h1 id="resinText">0 / 200</h1> <p id="nextText">+1 in 00:00</p>
+	</div>
+
+    <div class="card">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="lbl">Waktu Sekarang</span>
+          <span class="val" id="clockText">00:00:00</span>
+        </div>
+        <div class="info-item">
+          <span class="lbl">Selesai Dalam</span>
+          <span class="val" id="fullResinText">0j 0m 0d</span>
+        </div>
+        <div class="info-item">
+          <span class="lbl">Jam Penuh</span>
+          <span class="val" id="targetFullClockText">00:00:00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title" id="condensedText">Condensed: 0 / 5</div>
+      <div class="button-grid">
+        <button id="craftCondensed" class="btn-primary">CRAFT (-60)</button>
+        <button id="useCondensed" class="btn-danger">USE (-1)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Quick Adjust</div>
+      <div class="quick-grid">
+        <button data-amount="+20">+20</button>
+        <button data-amount="+30">+30</button>
+        <button data-amount="+40">+40</button>
+        <button data-amount="+60">+60</button>
+        <button data-amount="-20">-20</button>
+        <button data-amount="-30">-30</button>
+        <button data-amount="-40">-40</button>
+        <button data-amount="-60">-60</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="home.js"></script>
+</body>
+</html>

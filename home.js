@@ -85,7 +85,10 @@ function updateUI() {
 async function addResin(amount) {
   const now = Date.now();
   const msPassed = now - (Number(data.lastUpdate) || now);
-  const currentActual = (Number(data.currentResin) || 0) + Math.floor(msPassed / REGEN_MS);
+  
+  // Hitung resin saat ini termasuk regenerasi yang sudah berjalan
+  const currentActual = Math.min(MAX_RESIN, (Number(data.currentResin) || 0) + Math.floor(msPassed / REGEN_MS));
+  
   let newValue = currentActual + amount;
 
   if (newValue < 0) {
@@ -94,8 +97,24 @@ async function addResin(amount) {
   }
 
   newValue = Math.min(MAX_RESIN, newValue);
-  const currentModulo = msPassed % REGEN_MS;
-  await setDoc(resinRef, { currentResin: newValue, lastUpdate: now - currentModulo }, { merge: true });
+
+  let newLastUpdate;
+  
+  // LOGIKA PERBAIKAN:
+  // Jika resin sebelumnya FULL (200) dan sekarang berkurang (< 200)
+  // Maka kita set lastUpdate ke 'now' agar timer mulai murni dari 08:00
+  if (currentActual >= MAX_RESIN && newValue < MAX_RESIN) {
+    newLastUpdate = now;
+  } else {
+    // Jika tidak sedang penuh, pertahankan sisa detik (modulo) yang sudah berjalan
+    const currentModulo = msPassed % REGEN_MS;
+    newLastUpdate = now - currentModulo;
+  }
+
+  await setDoc(resinRef, { 
+    currentResin: newValue, 
+    lastUpdate: newLastUpdate 
+  }, { merge: true });
 }
 
 async function craftCondensed() {
@@ -163,5 +182,6 @@ onSnapshot(resinRef, (snapshot) => {
     updateUI();
   }
 });
+
 
 setInterval(updateUI, 1000);

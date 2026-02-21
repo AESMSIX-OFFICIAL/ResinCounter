@@ -48,7 +48,7 @@ function updateUI() {
 
   if (currentActualResin >= MAX_RESIN) {
     nextEl.innerText = "MAX CAPACITY";
-    fullInEl.innerText = "0j 0m 0d";
+    fullInEl.innerText = "0j 0m 0s";
     targetEl.innerText = "FULL";
     return;
   }
@@ -61,18 +61,13 @@ function updateUI() {
   const resinNeeded = MAX_RESIN - currentActualResin;
   const totalMsToFull = ((resinNeeded - 1) * REGEN_MS) + remainingMs;
 
-  const days = Math.floor(totalMsToFull / (24 * 60 * 60 * 1000));
-  const hours = Math.floor((totalMsToFull % (24 * 60 * 60 * 1000)) / 3600000);
+  const hours = Math.floor(totalMsToFull / 3600000);
   const mins = Math.floor((totalMsToFull % 3600000) / 60000);
   const secs = Math.floor((totalMsToFull % 60000) / 1000);
-
-  fullInEl.innerText = days > 0 ? `${days}h ${hours}j ${mins}m ${secs}d` : `${hours}j ${mins}m ${secs}d`;
+  fullInEl.innerText = `${hours}j ${mins}m ${secs}s`;
 
   const fullDate = new Date(now + totalMsToFull);
-  const options = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-  targetEl.innerText = days > 0 
-    ? fullDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' }) + " " + fullDate.toLocaleTimeString('id-ID', options)
-    : fullDate.toLocaleTimeString('id-ID', options);
+  targetEl.innerText = fullDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 async function addResin(amount) {

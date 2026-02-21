@@ -6,6 +6,7 @@ const REGEN_MS = 8 * 60 * 1000;
 
 let data = { currentResin: 0, condensedResin: 0, lastUpdate: Date.now() };
 
+// Ganti fungsi updateUI() lama dengan yang ini
 function updateUI() {
   if (!data) return;
 
@@ -19,101 +20,78 @@ function updateUI() {
   const now = Date.now();
   const lastUpdate = Number(data.lastUpdate) || now;
   const msPassed = now - lastUpdate;
+  
+  // Hitung berapa resin yang didapat sejak update terakhir
   const resinToGain = Math.floor(msPassed / REGEN_MS);
-  const currentActualResin = Math.min(MAX_RESIN, (Number(data.currentResin) || 0) + resinToGain);
+  let currentActualResin = (Number(data.currentResin) || 0) + resinToGain;
 
-  resinEl.innerText = `${currentActualResin} / ${MAX_RESIN}`;
-  condText.innerText = `Condensed: ${data.condensedResin || 0} / 5`;
-  clockEl.innerText = new Date().toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-
+  // 1. Logika Berhenti di 200
   if (currentActualResin >= MAX_RESIN) {
+    currentActualResin = MAX_RESIN;
+    resinEl.innerText = `${MAX_RESIN} / ${MAX_RESIN}`;
+    condText.innerText = `Condensed: ${data.condensedResin || 0} / 5`;
+    clockEl.innerText = new Date().toLocaleTimeString('id-ID');
+    
     nextEl.innerText = "MAX CAPACITY";
     fullInEl.innerText = "0j 0m 0d";
     targetEl.innerText = "FULL";
-    return;
+    return; // Berhenti di sini jika penuh
   }
 
+  // 2. Logika Timer +1 (Reset ke 08:00 jika baru mulai berkurang)
+  resinEl.innerText = `${currentActualResin} / ${MAX_RESIN}`;
+  condText.innerText = `Condensed: ${data.condensedResin || 0} / 5`;
+  clockEl.innerText = new Date().toLocaleTimeString('id-ID');
+
+  // Menghitung sisa waktu menuju +1 berikutnya
   const remainingMs = REGEN_MS - (msPassed % REGEN_MS);
   const m = Math.floor(remainingMs / 60000);
   const s = Math.floor((remainingMs % 60000) / 1000);
   nextEl.innerText = `+1 in ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-// 3. Perbaikan Perhitungan Waktu Penuh (Full) dengan Hari, Jam, Menit, Detik
+  // 3. Perhitungan Waktu Sampai Penuh (Full)
   const resinNeeded = MAX_RESIN - currentActualResin;
+  // Total waktu = (sisa resin yang dibutuhkan - 1) * 8 menit + sisa waktu ke +1 terdekat
   const totalMsToFull = ((resinNeeded - 1) * REGEN_MS) + remainingMs;
 
-  if (totalMsToFull > 0) {
-    // Kalkulasi Breakdown Waktu
-    const days = Math.floor(totalMsToFull / (24 * 60 * 60 * 1000));
-    const hours = Math.floor((totalMsToFull % (24 * 60 * 60 * 1000)) / 3600000);
-    const mins = Math.floor((totalMsToFull % 3600000) / 60000);
-    const secs = Math.floor((totalMsToFull % 60000) / 1000);
-    
-    // Format Tampilan Selesai Dalam
-    // Jika ada hari, tampilkan format: 1h 5j 30m 10d
-    // Jika tidak ada hari, tampilkan format: 5j 30m 10d
-    let timeString = "";
-    if (days > 0) {
-      timeString = `${days}h ${hours}j ${mins}m ${secs}d`;
-    } else {
-      timeString = `${hours}j ${mins}m ${secs}d`;
-    }
-    
-    fullInEl.innerText = timeString;
-
-    // Tampilkan Jam Penuh (Target Waktu)
-    const fullDate = new Date(now + totalMsToFull);
-    
-    // Jika penuhnya bukan hari ini, tambahkan info tanggal singkat (misal: 17/02 14:30)
-    const options = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
-    if (days > 0) {
-      targetEl.innerText = fullDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' }) + " " + 
-                           fullDate.toLocaleTimeString('id-ID', options);
-    } else {
-      targetEl.innerText = fullDate.toLocaleTimeString('id-ID', options);
-    }
-
-  } else {
-    fullInEl.innerText = "0j 0m 0d";
-    targetEl.innerText = "FULL";
-  }
+  const days = Math.floor(totalMsToFull / (24 * 60 * 60 * 1000));
+  const hours = Math.floor((totalMsToFull % (24 * 60 * 60 * 1000)) / 3600000);
+  const mins = Math.floor((totalMsToFull % 3600000) / 60000);
+  const secs = Math.floor((totalMsToFull % 60000) / 1000);
+  
+  fullInEl.innerText = days > 0 ? 
+    `${days}h ${hours}j ${mins}m ${secs}d` : 
+    `${hours}j ${mins}m ${secs}d`;
 
   const fullDate = new Date(now + totalMsToFull);
   targetEl.innerText = fullDate.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 }
 
+// Update fungsi addResin agar mereset timer ke 8 menit saat resin berkurang dari Max
 async function addResin(amount) {
   const now = Date.now();
   const msPassed = now - (Number(data.lastUpdate) || now);
-  
-  // Hitung resin saat ini termasuk regenerasi yang sudah berjalan
   const currentActual = Math.min(MAX_RESIN, (Number(data.currentResin) || 0) + Math.floor(msPassed / REGEN_MS));
   
   let newValue = currentActual + amount;
 
   if (newValue < 0) {
-    alert(`Resin tidak cukup! Anda butuh ${Math.abs(amount)} resin, tapi hanya punya ${currentActual}.`);
+    alert(`Resin tidak cukup!`);
     return;
   }
 
   newValue = Math.min(MAX_RESIN, newValue);
 
-  let newLastUpdate;
-  
-  // LOGIKA PERBAIKAN:
-  // Jika resin sebelumnya FULL (200) dan sekarang berkurang (< 200)
-  // Maka kita set lastUpdate ke 'now' agar timer mulai murni dari 08:00
+  // LOGIKA RESET: Jika sebelumnya penuh (200) dan sekarang berkurang, 
+  // maka lastUpdate diset ke 'now' agar timer mulai murni dari 08:00
+  let updateTime = now - (msPassed % REGEN_MS);
   if (currentActual >= MAX_RESIN && newValue < MAX_RESIN) {
-    newLastUpdate = now;
-  } else {
-    // Jika tidak sedang penuh, pertahankan sisa detik (modulo) yang sudah berjalan
-    const currentModulo = msPassed % REGEN_MS;
-    newLastUpdate = now - currentModulo;
+    updateTime = now;
   }
 
   await setDoc(resinRef, { 
     currentResin: newValue, 
-    lastUpdate: newLastUpdate 
+    lastUpdate: updateTime 
   }, { merge: true });
 }
 
@@ -185,3 +163,4 @@ onSnapshot(resinRef, (snapshot) => {
 
 
 setInterval(updateUI, 1000);
+

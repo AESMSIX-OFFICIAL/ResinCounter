@@ -94,23 +94,28 @@ async function addResin(amount) {
 
 async function craftCondensed() {
   const now = Date.now();
-  const lastUpdate = Number(data.lastUpdate) || now;
-  const msPassed = now - lastUpdate;
+  const msPassed = now - (Number(data.lastUpdate) || now);
   const currentActual = Math.min(MAX_RESIN, (Number(data.currentResin) || 0) + Math.floor(msPassed / REGEN_MS));
   if (currentActual >= 60) {
     if ((data.condensedResin || 0) >= 5) {
       alert("Condensed Resin sudah maksimal (5/5)!");
       return;
     }
-    const currentModulo = msPassed % REGEN_MS;
+
+    let newLastUpdate;
+    if (currentActual >= MAX_RESIN) {
+      newLastUpdate = now;
+    } else {
+      const currentModulo = msPassed % REGEN_MS;
+      newLastUpdate = now - currentModulo;
+    }
     await setDoc(resinRef, {
       currentResin: currentActual - 60,
       condensedResin: (data.condensedResin || 0) + 1,
-      lastUpdate: now - currentModulo 
+      lastUpdate: newLastUpdate 
     }, { merge: true });
-
   } else {
-    alert(`Resin tidak cukup! Butuh 60, saat ini hanya ada ${currentActual}.`);
+    alert(`Resin tidak cukup! Butuh 60.`);
   }
 }
 

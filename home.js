@@ -10,8 +10,20 @@ async function updateResinDatabase(newData) {
   const payload = { ...newData };
   if (newData.lastUpdate) {
     payload.lastUpdateReadable = new Date(newData.lastUpdate).toLocaleString('id-ID');
+    payload.serverSync = new Date().toISOString();
   }
   await setDoc(resinRef, payload, { merge: true });
+}
+
+async function initializeDefaultData() {
+  const defaultData = {
+    currentResin: 0,
+    condensedResin: 0,
+    lastUpdate: Date.now(),
+    lastUpdateReadable: new Date().toLocaleString('id-ID'),
+    serverSync: new Date().toISOString()
+  };
+  await setDoc(resinRef, defaultData);
 }
 
 function updateUI() {
@@ -134,8 +146,22 @@ document.getElementById("useCondensed").addEventListener("click", () => {
 });
 
 onSnapshot(resinRef, (snapshot) => {
-  if (snapshot.exists()) {
-    data = snapshot.data();
+  if (!snapshot.exists()) {
+    initializeDefaultData();
+    return;
+  }
+
+  const incomingData = snapshot.data();
+  const isCorrupt = 
+    typeof incomingData.currentResin !== 'number' || 
+    typeof incomingData.lastUpdate !== 'number' ||
+    incomingData.lastUpdate > Date.now() + 86400000 ||
+    incomingData.lastUpdate < 946656000000;
+
+  if (isCorrupt) {
+    initializeDefaultData();
+  } else {
+    data = incomingData;
     updateUI();
   }
 });

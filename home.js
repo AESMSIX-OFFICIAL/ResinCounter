@@ -72,7 +72,10 @@ function updateUI() {
   const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
   const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
   
-  targetEl.innerText = fullDate.toLocaleDateString('id-ID', dateOptions) + " " + fullDate.toLocaleTimeString('id-ID', timeOptions);
+  targetEl.innerHTML = `
+    <div style="font-size: 0.8em; opacity: 0.8;">${fullDate.toLocaleDateString('id-ID', dateOptions)}</div>
+    <div>${fullDate.toLocaleTimeString('id-ID', timeOptions)}</div>
+  `;
 }
 
 async function addResin(amount) {
@@ -167,3 +170,4 @@ onSnapshot(resinRef, (snapshot) => {
 });
 
 setInterval(updateUI, 1000);
+

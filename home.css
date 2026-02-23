@@ -194,6 +194,21 @@ button {
   align-items: center;
 }
 
+.info-item .val {
+  display: flex;
+  flex-direction: column; /* Menyusun tanggal dan jam secara vertikal */
+  align-items: center;
+  line-height: 1.2;       /* Memberi jarak antar baris agar tidak terlalu rapat */
+  text-align: center;
+}
+
+/* Opsional: Memperkecil sedikit font jika resolusi layar sangat kecil */
+@media (max-width: 400px) {
+  .val {
+    font-size: clamp(10px, 2vw, 18px);
+  }
+}
+
 button:hover {
   background: var(--btn-hover);
   transform: translateY(-2px);
@@ -206,4 +221,5 @@ button[data-amount^="-"] { border-left: 4px solid var(--danger); }
 button[data-amount^="+"] { border-left: 4px solid var(--primary); }
 
 .btn-primary:hover { background: var(--primary); color: #000; }
+
 .btn-danger:hover { background: var(--danger); color: #fff; }

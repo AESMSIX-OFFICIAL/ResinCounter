@@ -35,59 +35,26 @@ function updateUI() {
   const clockEl = document.getElementById("clockText");
   const targetEl = document.getElementById("targetFullClockText");
   const condText = document.getElementById("condensedText");
-  const lblSelesai = document.querySelectorAll(".lbl")[1]; // Mengambil label "Selesai Dalam"
+  // Mengambil label ke-2 dalam grid untuk mengubah "Selesai Dalam"
+  const lblSelesai = document.querySelectorAll(".lbl")[1]; 
 
   const now = Date.now();
   const lastUpdate = Number(data.lastUpdate) || now;
   const msPassed = now - lastUpdate;
   const resinToGain = Math.floor(msPassed / REGEN_MS);
-  
-  // Kalkulasi resin saat ini
   const currentActualResin = Math.min(MAX_RESIN, (Number(data.currentResin) || 0) + resinToGain);
 
   resinEl.innerText = `${currentActualResin} / ${MAX_RESIN}`;
   condText.innerText = `Condensed: ${data.condensedResin || 0} / 5`;
   clockEl.innerText = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  // LOGIKA BARU: Jika Resin Penuh
-  if (currentActualResin >= MAX_RESIN) {
-    lblSelesai.innerText = "Selesai Sejak";
-    nextEl.innerText = "MAX CAPACITY";
-    targetEl.innerText = "FULL";
-
-    // Hitung kapan sebenarnya dia menyentuh 200
-    const resinNeededToMax = MAX_RESIN - (Number(data.currentResin) || 0);
-    const msToReachMax = resinNeededToMax * REGEN_MS;
-    const timeAtFull = lastUpdate + msToReachMax;
-    const overflowMs = now - timeAtFull;
-
-    // Format waktu yang berlalu (Overflow)
-    const oHours = Math.floor(overflowMs / 3600000);
-    const oMins = Math.floor((overflowMs % 3600000) / 60000);
-    const oSecs = Math.floor((overflowMs % 60000) / 1000);
-    
-    fullInEl.innerText = `${oHours}j ${oMins}m ${oSecs}d`;
-    return;
-  }
-
-  // Jika Resin BELUM Penuh (Kembali ke mode default)
-  lblSelesai.innerText = "Selesai Dalam";
-  const remainingMs = REGEN_MS - (msPassed % REGEN_MS);
-  const m = Math.floor(remainingMs / 60000);
-  const s = Math.floor((remainingMs % 60000) / 1000);
-  nextEl.innerText = `+1 in ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-
-  const resinNeeded = MAX_RESIN - currentActualResin;
-  const totalMsToFull = ((resinNeeded - 1) * REGEN_MS) + remainingMs;
-
-  const days = Math.floor(totalMsToFull / (24 * 60 * 60 * 1000));
-  const hours = Math.floor((totalMsToFull % (24 * 60 * 60 * 1000)) / 3600000);
-  const mins = Math.floor((totalMsToFull % 3600000) / 60000);
-  const secs = Math.floor((totalMsToFull % 60000) / 1000);
-
-  fullInEl.innerText = days > 0 ? `${days}h ${hours}j ${mins}m ${secs}d` : `${hours}j ${mins}m ${secs}d`;
-
-  const fullDate = new Date(now + totalMsToFull);
+  // Hitung kapan resin menyentuh angka 200 secara tepat
+  const resinNeededToMax = MAX_RESIN - (Number(data.currentResin) || 0);
+  const msToReachMax = resinNeededToMax * REGEN_MS;
+  const timeAtFull = lastUpdate + msToReachMax;
+  
+  // Format Tanggal dan Jam untuk targetFullClockText
+  const fullDate = new Date(timeAtFull);
   const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
   const dateOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
   
@@ -95,6 +62,36 @@ function updateUI() {
     <div style="font-size: 0.8em; opacity: 0.8;">${fullDate.toLocaleDateString('id-ID', dateOptions)}</div>
     <div>${fullDate.toLocaleTimeString('id-ID', timeOptions)}</div>
   `;
+
+  if (currentActualResin >= MAX_RESIN) {
+    // MODE: FULL / LUBER
+    lblSelesai.innerText = "Selesai Sejak";
+    nextEl.innerText = "MAX CAPACITY";
+    
+    // Hitung berapa lama waktu yang sudah berlalu sejak penuh
+    const overflowMs = now - timeAtFull;
+    const oHours = Math.floor(overflowMs / 3600000);
+    const oMins = Math.floor((overflowMs % 3600000) / 60000);
+    const oSecs = Math.floor((overflowMs % 60000) / 1000);
+    
+    fullInEl.innerText = `${oHours}j ${oMins}m ${oSecs}d`;
+  } else {
+    // MODE: REGENERASI
+    lblSelesai.innerText = "Selesai Dalam";
+    
+    const remainingMs = REGEN_MS - (msPassed % REGEN_MS);
+    const m = Math.floor(remainingMs / 60000);
+    const s = Math.floor((remainingMs % 60000) / 1000);
+    nextEl.innerText = `+1 in ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+    const totalMsToFull = timeAtFull - now;
+    const days = Math.floor(totalMsToFull / (24 * 60 * 60 * 1000));
+    const hours = Math.floor((totalMsToFull % (24 * 60 * 60 * 1000)) / 3600000);
+    const mins = Math.floor((totalMsToFull % 3600000) / 60000);
+    const secs = Math.floor((totalMsToFull % 60000) / 1000);
+
+    fullInEl.innerText = days > 0 ? `${days}h ${hours}j ${mins}m ${secs}d` : `${hours}j ${mins}m ${secs}d`;
+  }
 }
 
 async function addResin(amount) {

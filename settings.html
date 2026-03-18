@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-container">
+    <h2 class="title">Manual Settings</h2>
+    
+    <div class="input-group">
+      <input type="number" id="setResinBox" placeholder="Value (0-200)" min="0">
+      <button id="btnSetResin" class="btn-dark">Set Resin</button>
+    </div>
+
+    <div class="input-group">
+      <input type="number" id="setCondensedBox" placeholder="Value (0-5)" min="0" max="5">
+      <button id="btnSetCondensed" class="btn-dark">Set Condensed</button>
+    </div>
+
+    <div class="input-group">
+      <input type="text" id="setTimeBox" placeholder="MM:SS (ex: 07:59)">
+      <button id="btnSetTime" class="btn-dark">Set Time</button>
+    </div>
+
+    <button id="btnResetAll" class="btn-danger-large">RESET ALL (Resin, Condensed, Timer)</button>
+    <button id="btnClose" class="btn-close">Close</button>
+  </div>
+
+  <script type="module" src="settings.js"></script>
+</body>
+</html>
